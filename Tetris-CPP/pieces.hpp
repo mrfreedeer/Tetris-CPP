@@ -44,61 +44,56 @@ namespace pieces {
 		/// Draws each rectangle stored in the RectangleShape blocks Array
 		/// </summary>
 		/// <param name="gameWindow"> Window where the game is drawn </param>
-		void draw(RenderWindow &gameWindow) {
+		const void draw(RenderWindow &gameWindow) {
 			for (RectangleShape &shape: blocks)
 			{
 				gameWindow.draw(shape);
 			}
 		}
-	private:
 
+		/// <summary>
+		/// Fills Color of every rectangle of the piece
+		/// </summary>
+		/// <param name="color"> Colors to be filled into the pieces' rectangles </param>
+		/// <returns></returns>
+		const void setFillColor(const sf::Color color) {
+			for (RectangleShape& shape : blocks)
+			{
+				shape.setFillColor(color);
+			}
+		}
+
+		const void rotate(const float angle, Vector2f* center = nullptr) {
+			center = (center == nullptr) ? this->pieceCenter: center;
+			Transform t;
+			t.rotate(angle, *center);
+			
+			for (RectangleShape& shape : blocks) {
+				shape.setPosition(t.transformPoint(shape.getPosition()));
+			}
+		}
+
+	protected:
+		Vector2f* pieceCenter;
 	};
 
 
 	class TPiece : public Piece {
 	public:
-		TPiece(Vector2<float> position, enums::Orientation o, float size = 20, const char* name = "Tpiece", bool useSpace = true) : Piece{ name, pieceSize } {
+		TPiece(Vector2<float> position, enums::Orientation orient, const float size = 20, const char* name = "Tpiece", const bool useSpace = true) : Piece{ name, pieceSize } {
 			try
 			{
-				switch (o)
-				{
-				case Orientation::right:
-				case Orientation::left:
-					for (int i = 0; i < 3; i++) {
-						blocks[i] = RectangleShape(Vector2f(size, size));
-						blocks[i].setPosition(position.x, position.y + (size + spaceSize) * i);
-					}
-					blocks[3] = RectangleShape(Vector2f(size, size));
-					if (o == Orientation::left) {
-						blocks[3].setPosition(position.x - (size + spaceSize), position.y + (size + spaceSize));
-					}
-					else {
-						blocks[3].setPosition(position.x + (size + spaceSize), position.y + (size + spaceSize));
-					}
-					break;
-
-				case Orientation::up:
-				case Orientation::down:
-					for (int i = 0; i < 3; i++) {
-						blocks[i] = RectangleShape(Vector2f(size, size));
-						blocks[i].setPosition(position.x + (size + spaceSize) * i, position.y);
-					}
-					blocks[3] = RectangleShape(Vector2f(size, size));
-					if (o == Orientation::up) {
-						blocks[3].setPosition(position.x + (size + spaceSize), position.y - (size + spaceSize));
-					}
-					else {
-						blocks[3].setPosition(position.x + (size + spaceSize), position.y + (size + spaceSize));
-					}
-					break;
-
-				default:
-					break;
+				for (int i = 0; i < 3; i++) {
+					blocks[i] = RectangleShape(Vector2f(size, size));
+					blocks[i].setPosition(position.x + (size + spaceSize) * i, position.y);
 				}
+				blocks[3] = RectangleShape(Vector2f(size, size));
+				blocks[3].setPosition(position.x + (size + spaceSize), position.y + (size + spaceSize));
+				this->pieceCenter = new Vector2f(position.x + (size + spaceSize), position.y);
 			}
 			catch (const std::exception& ex)
 			{
-				cout << "Error initializing Tpiece" << ex.what() << endl;
+				cout << "Error initializing Tpiece: " << ex.what() << endl;
 			}
 		}
 
