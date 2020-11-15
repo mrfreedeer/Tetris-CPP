@@ -7,6 +7,7 @@ int main()
     sf::CircleShape shape(100.f);
     shape.setFillColor(sf::Color::Green);
 
+    pieces::TPiece test (sf::Vector2f(50, 50), enums::Orientation::up);
     while (window.isOpen())
     {
         sf::Event event;
@@ -18,6 +19,7 @@ int main()
 
         window.clear();
         window.draw(shape);
+        test.draw(window);
         window.display();
     }
 
