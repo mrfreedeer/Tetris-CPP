@@ -13,6 +13,7 @@ namespace pieces {
 	class Piece
 	{
 	public:
+		
 		/// <summary>
 		/// Name of the piece, for debugging purposes
 		/// </summary>
@@ -30,12 +31,17 @@ namespace pieces {
 		/// </summary>
 		RectangleShape blocks[4];
 
+
+		RectangleShape* begin() { return &blocks[0];  }
+		RectangleShape* end() { return &blocks[3]; }
+
 		Piece(const char* name, float pieceSize = 20, bool useSpace = false) :name{ name }, pieceSize{ pieceSize }, spaceSize{ 1 }
 		{
 			spaceSize = (useSpace) ? spaceSize : 0;
 		}
 		~Piece()
 		{
+
 		}
 
 		/// <summary>
@@ -92,7 +98,7 @@ namespace pieces {
 		const void fall() {
 			for (RectangleShape& shape : blocks) {
 				const Vector2f currentPosition = shape.getPosition();
-				Vector2f newPosition = { currentPosition.x, currentPosition.y + 20 };
+				Vector2f newPosition = { currentPosition.x, currentPosition.y + pieceSize };
 				shape.setPosition(newPosition);
 			}
 			this->pieceCenter->y += 20;
@@ -123,9 +129,35 @@ namespace pieces {
 
 		}
 
+		const bool isTouching(Piece otherPiece) {
+			Piece touchingBottom = otherPiece;
+			touchingBottom.fall();
+
+			for (int i = 0; i < 4; i++) {
+				for (RectangleShape& shape : touchingBottom) {
+					if (shape.getGlobalBounds().intersects(this->blocks[i].getGlobalBounds()))
+						return true;
+				}
+			}
+
+			Piece* touchingTop = new Piece(*this);
+
+			touchingTop->fall();
+			for (int i = 0; i < 4; i++) {
+				for (RectangleShape& shape : otherPiece) {
+					if (shape.getGlobalBounds().intersects(touchingTop->blocks[i].getGlobalBounds()))
+						return true;
+				}
+			}
+
+			return false;
+
+		}
+
 	protected:
 		Vector2f* pieceCenter;
 		float rotation;
+
 	};
 
 
