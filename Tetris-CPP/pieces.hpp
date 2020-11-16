@@ -4,11 +4,9 @@
 
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include "Enums.cpp";
 
 
 using namespace sf;
-using namespace enums;
 using namespace std;
 
 namespace pieces {
@@ -31,8 +29,8 @@ namespace pieces {
 		/// Array where each rectangle of the piece is stored
 		/// </summary>
 		RectangleShape blocks[4];
-		
-		Piece(const char* name, float pieceSize = 20, bool useSpace = true) :name{ name }, pieceSize{ pieceSize }, spaceSize{1}
+
+		Piece(const char* name, float pieceSize = 20, bool useSpace = true) :name{ name }, pieceSize{ pieceSize }, spaceSize{ 1 }
 		{
 			spaceSize = (useSpace) ? spaceSize : 0;
 		}
@@ -44,8 +42,8 @@ namespace pieces {
 		/// Draws each rectangle stored in the RectangleShape blocks Array
 		/// </summary>
 		/// <param name="gameWindow"> Window where the game is drawn </param>
-		const void draw(RenderWindow &gameWindow) {
-			for (RectangleShape &shape: blocks)
+		const void draw(RenderWindow& gameWindow) {
+			for (RectangleShape& shape : blocks)
 			{
 				gameWindow.draw(shape);
 			}
@@ -64,10 +62,28 @@ namespace pieces {
 		}
 
 		const void rotate(const float angle, Vector2f* center = nullptr) {
-			center = (center == nullptr) ? this->pieceCenter: center;
+			center = (center == nullptr) ? this->pieceCenter : center;
 			Transform t;
 			t.rotate(angle, *center);
-			
+
+			for (RectangleShape& shape : blocks) {
+				shape.setPosition(t.transformPoint(shape.getPosition()));
+			}
+		}
+
+		const void controlledRotate(float angle, Vector2f* center = nullptr) {
+			center = (center == nullptr) ? this->pieceCenter : center;
+			Transform t;
+
+			if (rotation == 0) {
+				angle = rotation = 90;
+			}
+			else {
+				angle = -90;
+				rotation = 0;
+			}
+			t.rotate(angle, *center);
+
 			for (RectangleShape& shape : blocks) {
 				shape.setPosition(t.transformPoint(shape.getPosition()));
 			}
@@ -75,12 +91,13 @@ namespace pieces {
 
 	protected:
 		Vector2f* pieceCenter;
+		float rotation;
 	};
 
 
 	class TPiece : public Piece {
 	public:
-		TPiece(Vector2<float> position, enums::Orientation orient, const float size = 20, const char* name = "Tpiece", const bool useSpace = true) : Piece{ name, pieceSize } {
+		TPiece(Vector2<float> position, const float size = 20, const char* name = "Tpiece", const bool useSpace = true) : Piece{ name, pieceSize } {
 			try
 			{
 				for (int i = 0; i < 3; i++) {
@@ -93,11 +110,161 @@ namespace pieces {
 			}
 			catch (const std::exception& ex)
 			{
-				cout << "Error initializing Tpiece: " << ex.what() << endl;
+				cout << "Error initializing: " << name << ": " << ex.what() << endl;
 			}
 		}
 
 	};
+
+	class LPiece : public Piece {
+	public:
+		LPiece(Vector2<float> position, const float size = 20, const char* name = "Lpiece", const bool useSpace = true) : Piece{ name, pieceSize } {
+			try
+			{
+				for (int i = 0; i < 3; i++) {
+					blocks[i] = RectangleShape(Vector2f(size, size));
+					blocks[i].setPosition(position.x, position.y + (size + spaceSize) * i);
+				}
+				blocks[3] = RectangleShape(Vector2f(size, size));
+				blocks[3].setPosition(position.x + (size + spaceSize), position.y + (size + spaceSize) * 2);
+				this->pieceCenter = new Vector2f(position.x, position.y + (size + spaceSize) * 1);
+			}
+			catch (const std::exception& ex)
+			{
+				cout << "Error initializing: " << name << ": " << ex.what() << endl;
+			}
+		}
+	};
+
+	class JPiece : public Piece {
+	public:
+		JPiece(Vector2<float> position, const float size = 20, const char* name = "Jpiece", const bool useSpace = true) : Piece{ name, pieceSize } {
+			try
+			{
+				for (int i = 0; i < 3; i++) {
+					blocks[i] = RectangleShape(Vector2f(size, size));
+					blocks[i].setPosition(position.x, position.y + (size + spaceSize) * i);
+				}
+				blocks[3] = RectangleShape(Vector2f(size, size));
+				blocks[3].setPosition(position.x - (size + spaceSize), position.y + (size + spaceSize) * 2);
+				this->pieceCenter = new Vector2f(position.x, position.y + (size + spaceSize) * 1);
+			}
+			catch (const std::exception& ex)
+			{
+				cout << "Error initializing: " << name << ": " << ex.what() << endl;
+			}
+		}
+	};
+
+	class OPiece : public Piece {
+	public:
+		OPiece(Vector2<float> position, const float size = 20, const char* name = "OPiece", const bool useSpace = true) : Piece{ name, pieceSize } {
+			try
+			{
+				for (int i = 0; i < 2; i++) {
+					blocks[i] = RectangleShape(Vector2f(size, size));
+					blocks[i].setPosition(position.x, position.y + (size + spaceSize) * i);
+				}
+				for (int i = 2; i < 4; i++) {
+					blocks[i] = RectangleShape(Vector2f(size, size));
+					blocks[i].setPosition(position.x + (size + spaceSize), position.y + (size + spaceSize) * (i % 2));
+				}
+
+
+			}
+			catch (const std::exception& ex)
+			{
+				cout << "Error initializing: " << name << ": " << ex.what() << endl;
+			}
+		}
+
+		const void rotate(float angle) {
+			;
+		}
+	};
+
+	class IPiece : public Piece {
+	public:
+		IPiece(Vector2<float> position, const float size = 20, const char* name = "IPiece", const bool useSpace = true) : Piece{ name, pieceSize } {
+			try
+			{
+				for (int i = 0; i < 4; i++) {
+					blocks[i] = RectangleShape(Vector2f(size, size));
+					blocks[i].setPosition(position.x, position.y + (size + spaceSize) * i);
+				}
+				this->pieceCenter = new Vector2f(position.x, position.y + (size + spaceSize) * 2);
+				rotation = 0;
+			}
+			catch (const std::exception& ex)
+			{
+				cout << "Error initializing: " << name << ": " << ex.what() << endl;
+			}
+		}
+
+		const void rotate(float angle, Vector2f* center = nullptr) {
+			controlledRotate(angle, center);
+		}
+
+	
+	};
+
+	class SPiece : public Piece {
+	public:
+		SPiece(Vector2<float> position, const float size = 20, const char* name = "SPiece", const bool useSpace = true) : Piece{ name, pieceSize } {
+			try
+			{
+				for (int i = 0; i < 2; i++) {
+					blocks[i] = RectangleShape(Vector2f(size, size));
+					blocks[i].setPosition(position.x + (size + spaceSize) * i, position.y);
+				}
+
+				for (int i = 2; i < 4; i++) {
+					blocks[i] = RectangleShape(Vector2f(size, size));
+					blocks[i].setPosition(position.x + (size + spaceSize) * (i - 1), position.y - (size + spaceSize));
+				}
+
+				this->pieceCenter = new Vector2f(position.x + (size + spaceSize), position.y);
+				rotation = 0;
+			}
+			catch (const std::exception& ex)
+			{
+				cout << "Error initializing: " << name << ": " << ex.what() << endl;
+			}
+		}
+
+		const void rotate(float angle, Vector2f* center = nullptr) {
+			controlledRotate(angle, center);
+		}
+
+	};
+
+	class ZPiece : public Piece {
+	public:
+		ZPiece(Vector2<float> position, const float size = 20, const char* name = "ZPiece", const bool useSpace = true) : Piece{ name, pieceSize } {
+			try
+			{
+				for (int i = 0; i < 2; i++) {
+					blocks[i] = RectangleShape(Vector2f(size, size));
+					blocks[i].setPosition(position.x + (size + spaceSize) * i, position.y);
+				}
+
+				for (int i = 2; i < 4; i++) {
+					blocks[i] = RectangleShape(Vector2f(size, size));
+					blocks[i].setPosition(position.x + (size + spaceSize) * (i - 1), position.y + (size + spaceSize));
+				}
+
+				this->pieceCenter = new Vector2f(position.x + (size + spaceSize), position.y);
+			}
+			catch (const std::exception& ex)
+			{
+				cout << "Error initializing: " << name << ": " << ex.what() << endl;
+			}
+		}
+		const void rotate(float angle, Vector2f* center = nullptr) {
+			controlledRotate(angle, center);
+		}
+	};
+
 }
 
 #endif
