@@ -30,7 +30,7 @@ namespace pieces {
 		/// </summary>
 		RectangleShape blocks[4];
 
-		Piece(const char* name, float pieceSize = 20, bool useSpace = true) :name{ name }, pieceSize{ pieceSize }, spaceSize{ 1 }
+		Piece(const char* name, float pieceSize = 20, bool useSpace = false) :name{ name }, pieceSize{ pieceSize }, spaceSize{ 1 }
 		{
 			spaceSize = (useSpace) ? spaceSize : 0;
 		}
@@ -89,6 +89,40 @@ namespace pieces {
 			}
 		}
 
+		const void fall() {
+			for (RectangleShape& shape : blocks) {
+				const Vector2f currentPosition = shape.getPosition();
+				Vector2f newPosition = { currentPosition.x, currentPosition.y + 20 };
+				shape.setPosition(newPosition);
+			}
+			this->pieceCenter->y += 20;
+		}
+
+		const void move(sf::Keyboard::Key direction) {
+			
+			float movement = 0;
+			switch (direction)
+			{
+			case sf::Keyboard::Right:
+				movement += pieceSize;
+				break;
+			case sf::Keyboard::Left:
+				movement -= pieceSize;
+				break;
+			default:
+				break;
+			}
+
+			for (RectangleShape& shape : blocks) {
+				const Vector2f previousPosition = shape.getPosition();
+				Vector2f newPosition(previousPosition.x + movement, previousPosition.y);
+				shape.setPosition(newPosition);
+			}
+
+			this->pieceCenter->x += movement;
+
+		}
+
 	protected:
 		Vector2f* pieceCenter;
 		float rotation;
@@ -97,7 +131,7 @@ namespace pieces {
 
 	class TPiece : public Piece {
 	public:
-		TPiece(Vector2<float> position, const float size = 20, const char* name = "Tpiece", const bool useSpace = true) : Piece{ name, pieceSize } {
+		TPiece(Vector2<float> position, const float size = 20, const char* name = "Tpiece", const bool useSpace = false) : Piece{ name, size, useSpace } {
 			try
 			{
 				for (int i = 0; i < 3; i++) {
@@ -118,7 +152,7 @@ namespace pieces {
 
 	class LPiece : public Piece {
 	public:
-		LPiece(Vector2<float> position, const float size = 20, const char* name = "Lpiece", const bool useSpace = true) : Piece{ name, pieceSize } {
+		LPiece(Vector2<float> position, const float size = 20, const char* name = "Lpiece", const bool useSpace = false) : Piece{ name, size, useSpace } {
 			try
 			{
 				for (int i = 0; i < 3; i++) {
@@ -138,7 +172,7 @@ namespace pieces {
 
 	class JPiece : public Piece {
 	public:
-		JPiece(Vector2<float> position, const float size = 20, const char* name = "Jpiece", const bool useSpace = true) : Piece{ name, pieceSize } {
+		JPiece(Vector2<float> position, const float size = 20, const char* name = "Jpiece", const bool useSpace = false) : Piece{ name, size, useSpace } {
 			try
 			{
 				for (int i = 0; i < 3; i++) {
@@ -158,7 +192,7 @@ namespace pieces {
 
 	class OPiece : public Piece {
 	public:
-		OPiece(Vector2<float> position, const float size = 20, const char* name = "OPiece", const bool useSpace = true) : Piece{ name, pieceSize } {
+		OPiece(Vector2<float> position, const float size = 20, const char* name = "OPiece", const bool useSpace = false) : Piece{ name, pieceSize, useSpace } {
 			try
 			{
 				for (int i = 0; i < 2; i++) {
@@ -185,7 +219,7 @@ namespace pieces {
 
 	class IPiece : public Piece {
 	public:
-		IPiece(Vector2<float> position, const float size = 20, const char* name = "IPiece", const bool useSpace = true) : Piece{ name, pieceSize } {
+		IPiece(Vector2<float> position, const float size = 20, const char* name = "IPiece", const bool useSpace = false) : Piece{ name, pieceSize, useSpace } {
 			try
 			{
 				for (int i = 0; i < 4; i++) {
@@ -210,7 +244,7 @@ namespace pieces {
 
 	class SPiece : public Piece {
 	public:
-		SPiece(Vector2<float> position, const float size = 20, const char* name = "SPiece", const bool useSpace = true) : Piece{ name, pieceSize } {
+		SPiece(Vector2<float> position, const float size = 20, const char* name = "SPiece", const bool useSpace = false) : Piece{ name, pieceSize, useSpace } {
 			try
 			{
 				for (int i = 0; i < 2; i++) {
@@ -240,7 +274,7 @@ namespace pieces {
 
 	class ZPiece : public Piece {
 	public:
-		ZPiece(Vector2<float> position, const float size = 20, const char* name = "ZPiece", const bool useSpace = true) : Piece{ name, pieceSize } {
+		ZPiece(Vector2<float> position, const float size = 20, const char* name = "ZPiece", const bool useSpace = false) : Piece{ name, pieceSize, useSpace } {
 			try
 			{
 				for (int i = 0; i < 2; i++) {
