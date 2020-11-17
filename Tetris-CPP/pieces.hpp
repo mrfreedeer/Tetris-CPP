@@ -17,7 +17,7 @@ namespace pieces {
 		/// <summary>
 		/// Name of the piece, for debugging purposes
 		/// </summary>
-		const char* name;
+		const char* name = new char ();
 
 		/// <summary>
 		/// Size of the piece, in pixels. Default: 20
@@ -41,6 +41,19 @@ namespace pieces {
 		}
 		~Piece()
 		{
+			try
+			{
+				pieceCenter = nullptr;
+				name = nullptr;
+				forwardMesh = nullptr;
+				delete pieceCenter;
+				delete name;
+				delete forwardMesh;
+			}
+			catch (const std::exception& ex)
+			{
+				cout << ex.what()<<endl;
+			}
 
 		}
 
@@ -68,11 +81,11 @@ namespace pieces {
 		}
 
 		const void rotate(const float angle, Vector2f* center = nullptr) {
-			center = (center == nullptr) ? this->pieceCenter : center;
+  			center = (center == nullptr) ? this->pieceCenter : center;
 			Transform t;
 			t.rotate(angle, *center);
 
-			for (RectangleShape& shape : blocks) {
+			for (RectangleShape& shape : this->blocks) {
 				shape.setPosition(t.transformPoint(shape.getPosition()));
 			}
 		}
@@ -90,16 +103,19 @@ namespace pieces {
 			}
 			t.rotate(angle, *center);
 
-			for (RectangleShape& shape : blocks) {
+			for (RectangleShape& shape : this->blocks) {
 				shape.setPosition(t.transformPoint(shape.getPosition()));
 			}
 		}
 
 		const void fall() {
-			for (RectangleShape& shape : blocks) {
+			int i = 0;
+			for (RectangleShape& shape : this->blocks) {
 				const Vector2f currentPosition = shape.getPosition();
 				Vector2f newPosition = { currentPosition.x, currentPosition.y + pieceSize };
 				shape.setPosition(newPosition);
+				forwardMesh[i] = shape.getGlobalBounds();
+				i++;
 			}
 			this->pieceCenter->y += 20;
 		}
@@ -130,32 +146,20 @@ namespace pieces {
 		}
 
 		const bool isTouching(Piece otherPiece) {
-			Piece touchingBottom = otherPiece;
-			touchingBottom.fall();
-
-			for (int i = 0; i < 4; i++) {
-				for (RectangleShape& shape : touchingBottom) {
-					if (shape.getGlobalBounds().intersects(this->blocks[i].getGlobalBounds()))
+			
+			for (RectangleShape& shape : this->blocks) {
+				for (int i = 0; i < 4; i++) {
+					if (shape.getGlobalBounds().intersects(otherPiece.forwardMesh[i]))
 						return true;
 				}
 			}
-
-			Piece* touchingTop = new Piece(*this);
-
-			touchingTop->fall();
-			for (int i = 0; i < 4; i++) {
-				for (RectangleShape& shape : otherPiece) {
-					if (shape.getGlobalBounds().intersects(touchingTop->blocks[i].getGlobalBounds()))
-						return true;
-				}
-			}
-
 			return false;
 
 		}
 
 	protected:
-		Vector2f* pieceCenter;
+		Vector2f* pieceCenter = new Vector2f();
+		FloatRect* forwardMesh =  new FloatRect[4];
 		float rotation;
 
 	};
@@ -169,9 +173,11 @@ namespace pieces {
 				for (int i = 0; i < 3; i++) {
 					blocks[i] = RectangleShape(Vector2f(size, size));
 					blocks[i].setPosition(position.x + (size + spaceSize) * i, position.y);
+					forwardMesh[i] = blocks[i].getGlobalBounds();
 				}
 				blocks[3] = RectangleShape(Vector2f(size, size));
 				blocks[3].setPosition(position.x + (size + spaceSize), position.y + (size + spaceSize));
+				forwardMesh[3] = blocks[3].getGlobalBounds();
 				this->pieceCenter = new Vector2f(position.x + (size + spaceSize), position.y);
 			}
 			catch (const std::exception& ex)
@@ -190,9 +196,11 @@ namespace pieces {
 				for (int i = 0; i < 3; i++) {
 					blocks[i] = RectangleShape(Vector2f(size, size));
 					blocks[i].setPosition(position.x, position.y + (size + spaceSize) * i);
+					forwardMesh[i] = blocks[i].getGlobalBounds();
 				}
 				blocks[3] = RectangleShape(Vector2f(size, size));
 				blocks[3].setPosition(position.x + (size + spaceSize), position.y + (size + spaceSize) * 2);
+				forwardMesh[3] = blocks[3].getGlobalBounds();
 				this->pieceCenter = new Vector2f(position.x, position.y + (size + spaceSize) * 1);
 			}
 			catch (const std::exception& ex)
@@ -210,9 +218,11 @@ namespace pieces {
 				for (int i = 0; i < 3; i++) {
 					blocks[i] = RectangleShape(Vector2f(size, size));
 					blocks[i].setPosition(position.x, position.y + (size + spaceSize) * i);
+					forwardMesh[i] = blocks[i].getGlobalBounds();
 				}
 				blocks[3] = RectangleShape(Vector2f(size, size));
 				blocks[3].setPosition(position.x - (size + spaceSize), position.y + (size + spaceSize) * 2);
+				forwardMesh[3] = blocks[3].getGlobalBounds();
 				this->pieceCenter = new Vector2f(position.x, position.y + (size + spaceSize) * 1);
 			}
 			catch (const std::exception& ex)
@@ -230,10 +240,12 @@ namespace pieces {
 				for (int i = 0; i < 2; i++) {
 					blocks[i] = RectangleShape(Vector2f(size, size));
 					blocks[i].setPosition(position.x, position.y + (size + spaceSize) * i);
+					forwardMesh[i] = blocks[i].getGlobalBounds();
 				}
 				for (int i = 2; i < 4; i++) {
 					blocks[i] = RectangleShape(Vector2f(size, size));
 					blocks[i].setPosition(position.x + (size + spaceSize), position.y + (size + spaceSize) * (i % 2));
+					forwardMesh[i] = blocks[i].getGlobalBounds();
 				}
 
 
@@ -257,6 +269,7 @@ namespace pieces {
 				for (int i = 0; i < 4; i++) {
 					blocks[i] = RectangleShape(Vector2f(size, size));
 					blocks[i].setPosition(position.x, position.y + (size + spaceSize) * i);
+					forwardMesh[i] = blocks[i].getGlobalBounds();
 				}
 				this->pieceCenter = new Vector2f(position.x, position.y + (size + spaceSize) * 2);
 				rotation = 0;
@@ -282,11 +295,13 @@ namespace pieces {
 				for (int i = 0; i < 2; i++) {
 					blocks[i] = RectangleShape(Vector2f(size, size));
 					blocks[i].setPosition(position.x + (size + spaceSize) * i, position.y);
+					forwardMesh[i] = blocks[i].getGlobalBounds();
 				}
 
 				for (int i = 2; i < 4; i++) {
 					blocks[i] = RectangleShape(Vector2f(size, size));
 					blocks[i].setPosition(position.x + (size + spaceSize) * (i - 1), position.y - (size + spaceSize));
+					forwardMesh[i] = blocks[i].getGlobalBounds();
 				}
 
 				this->pieceCenter = new Vector2f(position.x + (size + spaceSize), position.y);
@@ -312,11 +327,13 @@ namespace pieces {
 				for (int i = 0; i < 2; i++) {
 					blocks[i] = RectangleShape(Vector2f(size, size));
 					blocks[i].setPosition(position.x + (size + spaceSize) * i, position.y);
+					forwardMesh[i] = blocks[i].getGlobalBounds();
 				}
 
 				for (int i = 2; i < 4; i++) {
 					blocks[i] = RectangleShape(Vector2f(size, size));
 					blocks[i].setPosition(position.x + (size + spaceSize) * (i - 1), position.y + (size + spaceSize));
+					forwardMesh[i] = blocks[i].getGlobalBounds();
 				}
 
 				this->pieceCenter = new Vector2f(position.x + (size + spaceSize), position.y);

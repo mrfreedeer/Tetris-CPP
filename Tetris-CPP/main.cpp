@@ -1,7 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include "pieces.hpp"
 #include "board.hpp"
-
+#include <time.h>
 
 using namespace board;
 
@@ -9,13 +9,19 @@ using namespace board;
 
 int main()
 {
+    srand(time(NULL));
     sf::RenderWindow window(sf::VideoMode(500, 500), "Tetris");
     sf::CircleShape shape(100.f);
     shape.setFillColor(sf::Color::Green);
 
+    std::vector<pieces::Piece> allpieces;
     pieces::TPiece test(Vector2f(60,20));
     cout << sf::Keyboard::Space<<endl<<endl;
     test.setFillColor(sf::Color::Blue);
+
+    pieces::Piece* activePiece = &test;
+
+    sf::Color colors[6] = {Color::Blue, Color::Cyan, Color::Magenta, Color::Green, Color::Red };
 
     sf::Clock clock;
     Vector2i boardSize = { 10, 20 };
@@ -35,15 +41,15 @@ int main()
                 switch (event.key.code)
                 {
                 case sf::Keyboard::Space:
-                    test.rotate(90);
+                     activePiece->rotate(90);
                     break;
                 case sf::Keyboard::Down:
-                    test.fall();
+                    activePiece->fall();
                     clock.restart();
                     break;
                 case sf::Keyboard::Left:
                 case sf::Keyboard::Right:
-                    test.move(event.key.code);
+                    activePiece->move(event.key.code);
                     break;
                 default:
                     break;
@@ -57,16 +63,34 @@ int main()
 
         if (elapsedTime > 1000) {
             if(!touched)
-                test.fall();
+                activePiece->fall();
             clock.restart();
         }
 
-        touched = board.hasReachedBottom(test);
+        touched = board.hasReachedBottom(*activePiece);
+        if (!touched) {
+            for (pieces::Piece& p : allpieces) {
+                if (activePiece->isTouching(p)) {
+                    touched = true;
+                    break;
+                }
+            }
+        }
 
+        if (touched) {
+            allpieces.push_back(*activePiece);
+            activePiece = nullptr;
+            activePiece = new pieces::TPiece(Vector2f(0, 0));
+            activePiece->setFillColor(colors[rand() % 4]);
+        }
         window.clear();
         window.draw(shape);
         
-        test.draw(window);
+        for(pieces::Piece& stoppedPiece : allpieces) {
+            stoppedPiece.draw(window);
+        }
+
+        activePiece->draw(window);
         Board::drawBoard(window, boardShapes);
         window.display();
     }
