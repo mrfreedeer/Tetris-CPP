@@ -25,6 +25,7 @@ namespace pieces {
 		float pieceSize;
 
 		float spaceSize;
+		bool fullStop;
 
 		/// <summary>
 		/// Array where each rectangle of the piece is stored
@@ -109,39 +110,44 @@ namespace pieces {
 		}
 
 		const void fall() {
-			int i = 0;
-			for (RectangleShape& shape : this->blocks) {
-				const Vector2f currentPosition = shape.getPosition();
-				Vector2f newPosition = { currentPosition.x, currentPosition.y + pieceSize };
-				shape.setPosition(newPosition);
-				forwardMesh[i] = shape.getGlobalBounds();
-				i++;
+			if (!fullStop) {
+				int i = 0;
+				for (RectangleShape& shape : this->blocks) {
+					const Vector2f currentPosition = shape.getPosition();
+					Vector2f newPosition = { currentPosition.x, currentPosition.y + pieceSize };
+					shape.setPosition(newPosition);
+					forwardMesh[i] = shape.getGlobalBounds();
+					forwardMesh[i].top += pieceSize;
+					i++;
+				}
+				this->pieceCenter->y += 20;
 			}
-			this->pieceCenter->y += 20;
 		}
 
 		const void move(sf::Keyboard::Key direction) {
 			
-			float movement = 0;
-			switch (direction)
-			{
-			case sf::Keyboard::Right:
-				movement += pieceSize;
-				break;
-			case sf::Keyboard::Left:
-				movement -= pieceSize;
-				break;
-			default:
-				break;
-			}
+			if (!fullStop) {
+				float movement = 0;
+				switch (direction)
+				{
+				case sf::Keyboard::Right:
+					movement += pieceSize;
+					break;
+				case sf::Keyboard::Left:
+					movement -= pieceSize;
+					break;
+				default:
+					break;
+				}
 
-			for (RectangleShape& shape : blocks) {
-				const Vector2f previousPosition = shape.getPosition();
-				Vector2f newPosition(previousPosition.x + movement, previousPosition.y);
-				shape.setPosition(newPosition);
-			}
+				for (RectangleShape& shape : blocks) {
+					const Vector2f previousPosition = shape.getPosition();
+					Vector2f newPosition(previousPosition.x + movement, previousPosition.y);
+					shape.setPosition(newPosition);
+				}
 
-			this->pieceCenter->x += movement;
+				this->pieceCenter->x += movement;
+			}
 
 		}
 
@@ -149,12 +155,21 @@ namespace pieces {
 			
 			for (RectangleShape& shape : this->blocks) {
 				for (int i = 0; i < 4; i++) {
-					if (shape.getGlobalBounds().intersects(otherPiece.forwardMesh[i]))
+					if (shape.getGlobalBounds().intersects(otherPiece.forwardMesh[i])) {
+						fullStop = true;
 						return true;
+					}
+				}
+			}
+			for (RectangleShape& shape : otherPiece.blocks) {
+				for (int i = 0; i < 4; i++) {
+					if (shape.getGlobalBounds().intersects(this->forwardMesh[i])) {
+						fullStop = true;
+						return true;
+					}
 				}
 			}
 			return false;
-
 		}
 
 	protected:
