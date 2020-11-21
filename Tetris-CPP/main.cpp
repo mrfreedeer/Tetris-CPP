@@ -11,8 +11,6 @@ int main()
 {
     srand(time(NULL));
     sf::RenderWindow window(sf::VideoMode(500, 500), "Tetris");
-    sf::CircleShape shape(100.f);
-    shape.setFillColor(sf::Color::Green);
 
     std::vector<pieces::Piece> allpieces;
     pieces::TPiece test(Vector2f(60,20));
@@ -84,7 +82,6 @@ int main()
             activePiece->setFillColor(colors[rand() % 4]);
         }
         window.clear();
-        window.draw(shape);
         
         for(pieces::Piece& stoppedPiece : allpieces) {
             stoppedPiece.draw(window);
